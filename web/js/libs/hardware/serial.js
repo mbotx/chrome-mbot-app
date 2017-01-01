@@ -2,7 +2,7 @@ define(function (require) {
   function Serial(){
     const self = this;
     self.connectionId = -1;
-    const EventEmitter = require("../EventEmitter.js");
+    const EventEmitter = require("../emitter.js");
     self.emitter = new EventEmitter();
     self.list = function(){
       return new Promise(((resolve)=>{
