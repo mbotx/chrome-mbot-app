@@ -1,5 +1,12 @@
-
-const Serial = require("./js/hardware/serial.js");
+define(function (require) {
+  const Serial = require("../js/libs/hardware/serial.js");
+  var port = new Serial();
+  port.list().then(function(ports){
+    for(var i in ports){
+      console.log(ports[i].path);
+    }
+  });
+});
 function onOpenScratchX(){
   window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/project.sbx#scratch');
 }
