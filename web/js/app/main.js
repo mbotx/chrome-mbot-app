@@ -1,10 +1,22 @@
 define(function (require) {
   const Serial = require("../js/libs/hardware/serial.js");
-  var port = new Serial();
-  port.list().then(function(ports){
-    for(var i in ports){
-      console.log(ports[i].path);
+  const HID = require("../js/libs/hardware/hid.js");
+  const DeviceEvent = require("../js/libs/events/deviceevent.js");
+  // var port = new Serial();
+  // port.list().then(function(ports){
+  //     console.log("serial ports:",ports);
+  // });
+  var hid = new HID();
+  hid.list().then(function(devices){
+    console.log(devices);
+    if(devices.length>0){
+      hid.connect(devices[0].deviceId).then(function(suc){
+        console.log("success:",suc);
+      });
     }
+  });
+  hid.on(DeviceEvent.UPDATE_DEVICES,function(devices){
+    //console.log(devices)
   });
 });
 function onOpenScratchX(){
