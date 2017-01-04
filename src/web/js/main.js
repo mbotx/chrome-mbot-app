@@ -1,11 +1,19 @@
 define(function (require) {
-  const Serial = require("../js/libs/hardware/serial.js");
-  const HID = require("../js/libs/hardware/hid.js");
-  const DeviceEvent = require("../js/libs/events/deviceevent.js");
+  const Serial = require("./libs/hardware/serial.js");
+  const HID = require("./libs/hardware/hid.js");
+  const DeviceEvent = require("./libs/events/deviceevent.js");
+  const Vue = require("./libs/ui/vue.js");
   // var port = new Serial();
   // port.list().then(function(ports){
   //     console.log("serial ports:",ports);
   // });
+  var app = new Vue({
+    el: '#app',
+    data: {
+      message: 'Hello Vue!'
+    }
+  });
+  chrome.runtime.sendMessage("hello");
   var hid = new HID();
   hid.list().then(function(devices){
     console.log(devices);

@@ -7,13 +7,13 @@
   "minimum_chrome_version": "38",
 
   "icons": {
-    "16": "./web/assets/icon_16.png",
-    "128": "./web/assets/icon_128.png"
+    "16": "./src/web/assets/icon_16.png",
+    "128": "./src/web/assets/icon_128.png"
   },
 
   "app": {
     "background": {
-      "scripts": ["./app/background.js"],
+      "scripts": ["src/app/background.js"],
       "persistent": true
     }
   },
@@ -32,8 +32,15 @@
                "productId" : 65535
             }
          ]
-      }
+      },
+    "http://*/*",
+    "https://*/*"
   ],
+  "sandbox":{
+    "pages":[
+      "src/web/index.html"
+    ]
+  },
   "externally_connectable": {
     "matches": ["*://localhost/*","*://scratchx.org/*"]
   }
