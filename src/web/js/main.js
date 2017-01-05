@@ -21,19 +21,28 @@ define(function (require) {
       }
     }
   });
-  chrome.runtime.sendMessage("hello");
-  var hid = new HID();
-  hid.list().then(function(devices){
-    console.log(devices);
-    if(devices.length>0){
-      hid.connect(devices[0].deviceId).then(function(suc){
-        console.log("success:",suc);
-      });
+  var hidSelector = new Vue({
+    el: '#hid-devices',
+    data: {
+      selected: '',
+      options: []
     }
   });
-  hid.on(DeviceEvent.UPDATE_DEVICES,function(devices){
-    //console.log(devices)
+  
+  var hid = new HID();
+  hid.list().then(function(devices){
+    var options = [];
+    for(var i=0;i<devices.length;i++){
+      options.push({ text: devices[i].productName, value: devices[i].deviceId });
+    }
+    hidSelector._data.options = options;
+    if(options.length>0){
+      hidSelector._data.selected = options[0].value;
+    }
   });
+  // hid.on(DeviceEvent.UPDATE_DEVICES,function(devices){
+    //console.log(devices)
+  // });
 });
 function onOpenScratchX(){
   window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/project.sbx#scratch');

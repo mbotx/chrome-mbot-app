@@ -7,12 +7,16 @@ define(function (require) {
         self.emitter = new EventEmitter();
         self.buffer = [];
         self.devices = [];
+        self.port = chrome.runtime.connect({name: "hid"});
+
         self.list = function(){
             return new Promise(((resolve)=>{
-                chrome.hid.getDevices({vendorId:0x0416,productId:0xffff},function(devices){
-                    self.devices = devices.concat([]);
-                    resolve(devices);
-                });
+                function received(msg){
+                    self.port.onMessage.removeListener(received);
+                    resolve(msg.devices);
+                }
+                self.port.onMessage.addListener(received);
+                self.port.postMessage({method:"list"});
             }));
         };
         self.connect = function(deviceId){
@@ -70,7 +74,7 @@ define(function (require) {
         };
         
         self.list();
-        
+        /*
         chrome.hid.onDeviceAdded.addListener(function(device){
             console.log("added:",device);
             for(var i in self.devices){
@@ -89,7 +93,7 @@ define(function (require) {
               }
             }
             self.emitter.emit(DeviceEvent.UPDATE_DEVICES,self.devices);
-        });
+        });*/
     }
     return HID;
 });
