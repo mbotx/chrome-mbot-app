@@ -10,7 +10,15 @@ define(function (require) {
   var app = new Vue({
     el: '#app',
     data: {
-      message: 'Hello Vue!'
+      logo:"./assets/logo.png"
+    },
+    methods: {
+      mbotSelected: function () {
+        console.log("mbot");
+      },
+      rangerSelected: function () {
+        console.log("ranger");
+      }
     }
   });
   chrome.runtime.sendMessage("hello");

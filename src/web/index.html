@@ -7,12 +7,14 @@
     
 </head>
 <body>
-  <img src="./assets/logo.png"/>
   <div id="app">
-    {{ message }}
-  </div>
-  <div id="type-device-panel" style="height:40px">
-    <span style="width:220px;display:block;">mBot</span>
+    <img :src="logo" />
+    <div id="type-device-panel" style="height:40px">
+      <span style="width:220px;display:block;">mBot</span>
+      
+      <button v-on:click="mbotSelected">mBot</button>
+      <button v-on:click="rangerSelected">mBot Ranger</button>
+    </div>
   </div>
   <div id="bt-device-panel" style="height:40px">
     <span style="width:220px;display:block;">Bluetooth</span>
