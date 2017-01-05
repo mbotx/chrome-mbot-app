@@ -8,11 +8,39 @@ define(function (require) {
         self.buffer = [];
         self.devices = [];
         self.port = chrome.runtime.connect({name: "hid"});
-
+        function updateHandle(msg){
+            switch(msg.event){
+                case DeviceEvent.DEVICE_ADDED:{
+                    for(var i in self.devices){
+                        if(self.devices[i].deviceId==msg.device.deviceId){
+                            return;
+                        }
+                    }
+                    self.devices.push(msg.device);
+                    self.emitter.emit(DeviceEvent.DEVICES_UPDATE,self.devices);
+                }
+                break;
+                case DeviceEvent.DEVICE_REMOVED:{
+                    for(var i in self.devices){
+                        if(self.devices[i].deviceId==msg.deviceId){
+                            self.devices.splice(i,1);
+                        }
+                    }
+                    self.emitter.emit(DeviceEvent.DEVICES_UPDATE,self.devices);
+                }
+                break;
+                case DeviceEvent.DATA_RECEIVED:{
+                    self.emitter.emit(DeviceEvent.DATA_RECEIVED,{});
+                }
+                break;
+            }
+        }
+        self.port.onMessage.addListener(updateHandle);
         self.list = function(){
             return new Promise(((resolve)=>{
                 function received(msg){
                     self.port.onMessage.removeListener(received);
+                    self.devices = msg.devices;
                     resolve(msg.devices);
                 }
                 self.port.onMessage.addListener(received);
@@ -74,26 +102,7 @@ define(function (require) {
         };
         
         self.list();
-        /*
-        chrome.hid.onDeviceAdded.addListener(function(device){
-            console.log("added:",device);
-            for(var i in self.devices){
-              if(device.deviceId==self.devices[i].deviceId){
-                return;
-              }
-            }
-            self.devices.push(device);
-            self.emitter.emit(DeviceEvent.UPDATE_DEVICES,self.devices);
-        });
-        chrome.hid.onDeviceRemoved.addListener(function(deviceId){
-            console.log("removed:",deviceId);
-            for(var i in self.devices){
-              if(deviceId==self.devices[i].deviceId){
-                self.devices.splice(i);
-              }
-            }
-            self.emitter.emit(DeviceEvent.UPDATE_DEVICES,self.devices);
-        });*/
+        /**/
     }
     return HID;
 });

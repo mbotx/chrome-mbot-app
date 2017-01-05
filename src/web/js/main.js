@@ -31,6 +31,12 @@ define(function (require) {
   
   var hid = new HID();
   hid.list().then(function(devices){
+    updateHIDList(devices);
+  });
+  hid.on(DeviceEvent.DEVICES_UPDATE,function(devices){
+    updateHIDList(devices);
+  });
+  function updateHIDList(devices){
     var options = [];
     for(var i=0;i<devices.length;i++){
       options.push({ text: devices[i].productName, value: devices[i].deviceId });
@@ -39,10 +45,7 @@ define(function (require) {
     if(options.length>0){
       hidSelector._data.selected = options[0].value;
     }
-  });
-  // hid.on(DeviceEvent.UPDATE_DEVICES,function(devices){
-    //console.log(devices)
-  // });
+  }
 });
 function onOpenScratchX(){
   window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/project.sbx#scratch');

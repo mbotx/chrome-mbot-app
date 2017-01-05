@@ -1,6 +1,8 @@
 define(function (require) {
     var DeviceEvent = {
-        UPDATE_DEVICES:"__UPDATE_DEVICES__",
+        DEVICES_UPDATE:"__DEVICES_UPDATE__",
+        DEVICE_ADDED:"__DEVICE_ADDED__",
+        DEVICE_REMOVED:"__DEVICE_REMOVED__",
         DATA_RECEIVED:"__DATA_RECEIVED__"
     };
     return DeviceEvent;
