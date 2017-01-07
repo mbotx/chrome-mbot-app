@@ -8,10 +8,11 @@ define(function (require) {
         self.buffer = [];
         self.devices = [];
         self.port = chrome.runtime.connect({name: "hid"});
+        var i=0;
         function updateHandle(msg){
             switch(msg.event){
                 case DeviceEvent.DEVICE_ADDED:{
-                    for(var i in self.devices){
+                    for(i=0;i<self.devices.length;i++){
                         if(self.devices[i].deviceId==msg.device.deviceId){
                             return;
                         }
@@ -21,7 +22,7 @@ define(function (require) {
                 }
                 break;
                 case DeviceEvent.DEVICE_REMOVED:{
-                    for(var i in self.devices){
+                    for(i=0;i<self.devices.length;i++){
                         if(self.devices[i].deviceId==msg.deviceId){
                             self.devices.splice(i,1);
                         }
@@ -30,7 +31,13 @@ define(function (require) {
                 }
                 break;
                 case DeviceEvent.DATA_RECEIVED:{
-                    self.emitter.emit(DeviceEvent.DATA_RECEIVED,{});
+                    self.emitter.emit(DeviceEvent.DATA_RECEIVED,msg.data);
+                }
+                break;
+                case DeviceEvent.COMMAND_RECEIVED:{
+                    var data = msg.data;
+                    data.splice(0,1);
+                    self.send(data);
                 }
                 break;
             }
@@ -49,52 +56,45 @@ define(function (require) {
         };
         self.connect = function(deviceId){
           return new Promise(((resolve)=>{
-                chrome.hid.connect(deviceId, function(connectInfo) {
-                    var suc = false;
-                    if (!connectInfo) {
-                    
-                    }else{
-                        if(self.connectionId==-1){
-                        }
-                        suc = true;
-                        self.connectionId = connectInfo.connectionId;
-                        self.poll();
-                    }
-                    resolve(suc);
-                });
+              function received(msg){
+                  self.port.onMessage.removeListener(received);
+                  self.connectionId = msg.connectionId;
+                  var suc = self.connectionId>-1;
+                  resolve(suc);
+                  if(suc){
+                    self.poll();
+                  }
+              }
+              self.port.onMessage.addListener(received);
+              self.port.postMessage({method:"connect",deviceId:deviceId});
             }));
         };
-        self.close = function(){
+        self.disconnect = function(){
             return new Promise(((resolve)=>{
-                chrome.hid.disconnect(self.connectionId, function() {
-                    self.connectionId = -1;
-                    resolve();
-                });
+              function received(msg){
+                  self.port.onMessage.removeListener(received);
+                  self.connectionId = -1;
+                  resolve();
+              }
+              self.port.onMessage.addListener(received);
+              if(self.connectionId>-1){
+                self.port.postMessage({method:"disconnect",connectionId:self.connectionId});
+              }else{
+                resolve();
+              }
             }));
         };
         self.poll = function(){
-            if(self.connectionId!=-1){
-                self.interval = setTimeout(self.poll,100);
-                chrome.hid.receive(self.connectionId, function(reportId, data) {
-                    var buffer = new Uint8Array(data);
-                    var len = buffer[0];
-                    if(len>0){
-                      var output = [];
-                      for(var i=0;i<len;i++){
-                        output.push(buffer[i+1]);
-                      }
-                      self.emitter.emit(DeviceEvent.DATA_RECEIVED,output);
-                    }
-                    clearInterval(self.interval);
-                    setTimeout(self.poll, 16);
-                });
-            }
+            self.port.postMessage({method:"poll",connectionId:self.connectionId});
         };
-        self.send = function(buffer){
+        self.send = function(data){
             return new Promise(((resolve)=>{
-                chrome.hid.send(connectionId, 0, buffer, function() {
-                    resolve();
-                });
+                function received(){
+                  self.port.onMessage.removeListener(received);
+                  resolve();
+              }
+              self.port.onMessage.addListener(received);
+              self.port.postMessage({method:"send",connectionId:self.connectionId,data:data});
             }));
         };
         self.on = function(event,listener){

@@ -7,6 +7,11 @@ define(function (require) {
   // port.list().then(function(ports){
   //     console.log("serial ports:",ports);
   // });
+  //ogpaopffkincgenkbbiedlfleljflfkf
+  //ogpaopffkincgenkbbiedlfleljflfkf
+  console.log("id:",chrome.runtime.id);
+  const self = this;
+  var hid = new HID();
   var app = new Vue({
     el: '#app',
     data: {
@@ -26,16 +31,31 @@ define(function (require) {
     data: {
       selected: '',
       options: []
+    },
+    methods: {
+        connect: function (e) {
+            hid.connect(this.selected).then(function(suc){
+              console.log("hid connected:",suc);
+              e.target.innerHTML = (suc?"Disconnect":"Connect");
+            });
+        }
     }
   });
-  
-  var hid = new HID();
+  var scratchPanel = new Vue({
+    el:"#scratch-x-panel",
+    methods:{
+      openProject:function(){
+        window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/debug.sbx#scratch');
+      }
+    }
+  });
   hid.list().then(function(devices){
     updateHIDList(devices);
   });
   hid.on(DeviceEvent.DEVICES_UPDATE,function(devices){
     updateHIDList(devices);
   });
+  
   function updateHIDList(devices){
     var options = [];
     for(var i=0;i<devices.length;i++){
@@ -47,9 +67,6 @@ define(function (require) {
     }
   }
 });
-function onOpenScratchX(){
-  window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/project.sbx#scratch');
-}
 //clgdmbbhmdlbcgdffocenbbeclodbndh
 function onRefreshHardware(){
   var msg = {};

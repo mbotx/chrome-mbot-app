@@ -5,12 +5,66 @@ chrome.app.runtime.onLaunched.addListener(function() {
         innerBounds: { width: 300, height: 440, minWidth: 300, maxWidth: 300, minHeight: 440, maxHeight: 440 }
       });
 });
-function initHID(port){
+var currentPort;
+var ports = [];
+function setupHID(port){
+    var interval;
     port.onMessage.addListener(function(msg) {
       if(msg.method=="list"){
         chrome.hid.getDevices({vendorId:0x0416,productId:0xffff},function(devices){
             port.postMessage({method:msg.method,devices:devices});
         });
+      }else if(msg.method=="connect"){
+        chrome.hid.connect(msg.deviceId, function(connectInfo) {
+            if (!connectInfo) {
+              port.postMessage({method:msg.method,connectionId:-1});
+            }else{
+              port.postMessage({method:msg.method,connectionId:connectInfo.connectionId});
+            }
+        });
+      }else if(msg.method=="receive"){
+        chrome.hid.receive(msg.connectionId, function(reportId, data) {
+            var bytes = new Uint8Array(data);
+            var buffer = [];
+            for(var i=0;i<bytes.length;i++){
+              buffer[i] = bytes[i]; 
+            }
+            port.postMessage({method:msg.method,data:buffer});
+            currentPort.postMessage(buffer);
+        });
+      }else if(msg.method=="disconnect"){
+        chrome.hid.disconnect(msg.connectionId, function() {
+            port.postMessage({method:msg.method});
+        });
+      }else if(msg.method=="send"){
+        var len = msg.data.length;
+        var bytes = new Uint8Array(len+1);
+        bytes[0] = len;
+        for(var i=0;i<len;i++){
+          bytes[i+1] = msg.data[i];
+        }
+        chrome.hid.send(msg.connectionId, 0, bytes.buffer, function() {
+            port.postMessage({method:msg.method,data:msg.data});
+        });
+      }else if(msg.method=="poll"){
+        function poll(){
+          chrome.hid.receive(msg.connectionId, function(reportId,data) {
+            var bytes = new Uint8Array(data);
+            var buffer = [];
+            var len = bytes[0];
+            for(var i=0;i<len;i++){
+              buffer.push(bytes[i+1]);
+            }
+            if(len>0){
+              currentPort.postMessage({buffer:buffer});
+              port.postMessage({event:"__DATA_RECEIVED__",data:buffer});
+            }
+            clearTimeout(interval);
+            interval = setTimeout(poll,10);
+          });
+        }
+        clearTimeout(interval);
+        interval = setTimeout(poll,10);
       }
     });
     chrome.hid.onDeviceAdded.addListener(function(device){
@@ -20,8 +74,29 @@ function initHID(port){
         port.postMessage({event:"__DEVICE_REMOVED__",deviceId:deviceId});
     });
 }
+
+chrome.runtime.onConnectExternal.addListener(function(port){
+  console.log(port);
+  currentPort = port;
+  currentPort.onMessage.addListener(function(msg){
+    for(var i in ports){
+      ports[i].postMessage({event:"__COMMAND_RECEIVED__",data:msg.buffer});
+    }
+  });
+});
+chrome.runtime.onMessageExternal.addListener(function(request, sender, sendResponse) {
+    var resp = {};
+    if(ports.length==0){
+      resp.status = false;
+      sendResponse(resp);
+    }else{
+      resp.status = true;
+      sendResponse(resp);
+    }
+});
 chrome.runtime.onConnect.addListener(function(port){
+  ports.push(port);
   if(port.name=="hid"){
-    initHID(port);
+    setupHID(port);
   }
 });

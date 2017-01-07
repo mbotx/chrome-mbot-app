@@ -28,7 +28,7 @@
         {{ option.text }}
       </option>
     </select>
-    <button id="connectHID" style="float:right;width:90px;">Connect</button>
+    <button v-on:click="connect" style="float:right;width:90px;">Connect</button>
   </div>
   <div id="serial-device-panel">
     <span style="width:220px;display:block;">Serial Port</span>
@@ -37,7 +37,7 @@
   </div>
   <div id="scratch-x-panel" style="margin:10px auto 0 auto;width:100%;">
     <button id="refresh" style="float:left;height:28px;">Refresh</button>
-    <button id="openscratchx" style="float:right;height:28px;color:#fff;background-color:#33cc77;">Open Scratch X</button>
+    <button v-on:click="openProject" style="float:right;height:28px;color:#fff;background-color:#33cc77;">Open Scratch X</button>
   </div>
 </body>
 </html>
