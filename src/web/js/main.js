@@ -1,6 +1,7 @@
 define(function (require) {
   const Serial = require("./libs/hardware/serial.js");
   const HID = require("./libs/hardware/hid.js");
+  const Bluetooth = require("./libs/hardware/bluetooth.js");
   const DeviceEvent = require("./libs/events/deviceevent.js");
   const Vue = require("./libs/ui/vue.js");
   // var port = new Serial();
@@ -13,6 +14,7 @@ define(function (require) {
   const self = this;
   var hid = new HID();
   var serial = new Serial();
+  var bluetooth = new Bluetooth();
   var app = new Vue({
     el: '#app',
     data: {
@@ -68,15 +70,38 @@ define(function (require) {
         }
     }
   });
+
+  var bluetoothSelector = new Vue({
+    el: '#bluetooth-devices',
+    data: {
+      selected: '',
+      options: []
+    },
+    methods: {
+        connect: function (e) {
+          if(bluetooth.connectionId>-1){
+            bluetooth.disconnect().then(function(){
+              e.target.innerHTML = "Connect";
+            })
+          }else{
+            bluetooth.connect(this.selected).then(function(suc){
+              console.log("bluetooth connected:",suc);
+              e.target.innerHTML = (suc?"Disconnect":"Connect");
+            });
+          }
+        }
+    }
+  });
   var scratchPanel = new Vue({
     el:"#scratch-x-panel",
     methods:{
       openProject:function(){
-        window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/debug.sbx#scratch');
+        window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/debug.sbx&id='+chrome.runtime.id+'#scratch');
       },
       refresh:function(){
         updateSerial();
         updateHID();
+        bluetooth.discover();
       }
     }
   });
@@ -90,12 +115,20 @@ define(function (require) {
       updateHIDList(devices);
     });
   }
+  function updateBluetooth(){
+    bluetooth.list().then(function(devices){
+      updateBluetoothList(devices);
+    });
+  }
   updateSerial();
   updateHID();
+  updateBluetooth();
   hid.on(DeviceEvent.DEVICES_UPDATE,function(devices){
     updateHIDList(devices);
   });
-  
+  bluetooth.on(DeviceEvent.DEVICES_UPDATE,function(devices){
+    updateBluetoothList(devices);
+  });
   function updateHIDList(devices){
     var options = [];
     for(var i=0;i<devices.length;i++){
@@ -117,8 +150,19 @@ define(function (require) {
       serialSelector._data.selected = options[0].value;
     }
   }
+  function updateBluetoothList(devices){
+    var options = [];
+    for(var i=0;i<devices.length;i++){
+      options.push({ text: devices[i].name+"("+devices[i].address+")", value: devices[i].address });
+    }
+    bluetoothSelector._data.options = options;
+    if(options.length>0){
+      bluetoothSelector._data.selected = options[0].value;
+    }
+  }
 });
 //clgdmbbhmdlbcgdffocenbbeclodbndh
+//old code
 function onRefreshHardware(){
   var msg = {};
   msg.action = "initHID";

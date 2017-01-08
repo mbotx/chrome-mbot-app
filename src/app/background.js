@@ -54,7 +54,64 @@ function setupSerial(port){
 }
 //bluetooth
 function setupBluetooth(port){
-
+    var interval;
+    port.onMessage.addListener(function(msg) {
+      if(msg.method=="list"){
+        chrome.bluetooth.getDevices(function(devices){
+            port.postMessage({method:msg.method,devices:devices});
+        });
+      }else if(msg.method=="discover"){
+        chrome.bluetooth.startDiscovery(function(){
+            port.postMessage({method:msg.method});
+        });
+      }else if(msg.method=="connect"){
+        chrome.bluetooth.connect(msg.path,{bitrate:115200}, function(connectInfo) {
+            if (!connectInfo) {
+              port.postMessage({method:msg.method,connectionId:-1});
+            }else{
+              port.postMessage({method:msg.method,connectionId:connectInfo.connectionId});
+            }
+        });
+      }else if(msg.method=="disconnect"){
+        chrome.bluetooth.disconnect(msg.connectionId, function() {
+            port.postMessage({method:msg.method});
+        });
+      }else if(msg.method=="send"){
+        var len = msg.data.length;
+        var bytes = new Uint8Array(len);
+        for(var i=0;i<len;i++){
+          bytes[i] = msg.data[i];
+        }
+        chrome.bluetooth.send(msg.connectionId, bytes.buffer, function() {
+            port.postMessage({method:msg.method,data:msg.data});
+        });
+      }
+    });
+    // chrome.bluetooth.onReceive.addListener(function(obj){ 
+    //     var bytes = new Uint8Array(obj.data);
+    //     var buffer = [];
+    //     var len = bytes.length;
+    //     for(var i=0;i<len;i++){
+    //       buffer.push(bytes[i]);
+    //     }
+    //     if(len>0){
+    //       scratchPort.postMessage({buffer:buffer});
+    //       port.postMessage({event:"__DATA_RECEIVED__",data:buffer});
+    //     }
+    // });
+    chrome.bluetooth.onAdapterStateChanged.addListener(function(state){
+      //state.discovering;
+    })
+    chrome.bluetooth.onDeviceAdded.addListener(function(device){
+        port.postMessage({event:"__DEVICE_ADDED__",device:device});
+    });
+    chrome.bluetooth.onDeviceRemoved.addListener(function(device){
+        port.postMessage({event:"__DEVICE_REMOVED__",device:device});
+    });
+    chrome.bluetooth.onDeviceChanged.addListener(function(device){
+        port.postMessage({event:"__DEVICE_CHANGED__",device:device});
+    });
+    
 }
 //hid
 function setupHID(port){

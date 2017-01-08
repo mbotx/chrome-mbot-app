@@ -16,14 +16,18 @@
       <button v-on:click="rangerSelected">mBot Ranger</button>
     </div>
   </div>
-  <div id="bt-device-panel" style="height:40px">
+  <div id="bluetooth-devices" style="height:40px">
     <span style="width:220px;display:block;">Bluetooth</span>
-    <select id="bt-device-selector" style="width:190px;"></select>
-    <button id="connectBT" style="float:right;width:90px;">Connect</button>
+    <select v-model="selected" style="width:190px;">
+      <option v-for="option in options" v-bind:value="option.value">
+        {{ option.text }}
+      </option>
+    </select>
+    <button v-on:click="connect" style="float:right;width:90px;">Connect</button>
   </div>
   <div id="hid-devices" style="height:40px">
     <span style="width:220px;display:block;">HID Wireless</span>
-    <select v-model="selected">
+    <select v-model="selected" style="width:190px;">
       <option v-for="option in options" v-bind:value="option.value">
         {{ option.text }}
       </option>

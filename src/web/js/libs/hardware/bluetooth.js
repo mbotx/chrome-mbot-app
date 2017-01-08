@@ -3,62 +3,122 @@ define(function (require) {
         const self = this;
         const EventEmitter = require("../events/emitter.js");
         const DeviceEvent = require("../events/deviceevent.js");
-        self.socketId = -1;
+        self.connectionId = -1;
         self.emitter = new EventEmitter();
         self.buffer = [];
         self.devices = [];
-        self.list = function(){
-            return new Promise(((resolve)=>{
-                chrome.bluetooth.getDevices(function(devices){
-                    resolve(devices);
-                });
-            }))
-        };
-        self.startDiscovery = function(){
-            return new Promise(((resolve)=>{
-                chrome.bluetooth.startDiscovery(function(){
-                    resolve();
-                });
-            }))
-        }
-        self.stopDiscovery = function(){
-            return new Promise(((resolve)=>{
-                chrome.bluetooth.stopDiscovery(function(){
-                    resolve();
-                });
-            }))
-        }
-        self.connect = function(){
+        self.port = chrome.runtime.connect({name: "bluetooth"});
+        var i=0;
 
-        };
-        self.close = function(){
-
-        };
-        self.onReceived = function(data){
-
+        function updateHandle(msg){
+            switch(msg.event){
+                case DeviceEvent.DEVICE_ADDED:{
+                    for(i=0;i<self.devices.length;i++){
+                        if(self.devices[i].address==msg.device.address){
+                            return;
+                        }
+                    }
+                    self.devices.push(msg.device);
+                    self.emitter.emit(DeviceEvent.DEVICES_UPDATE,self.devices);
+                }
+                break;
+                case DeviceEvent.DEVICE_REMOVED:{
+                    for(i=0;i<self.devices.length;i++){
+                        if(self.devices[i].address==msg.device.address){
+                            self.devices.splice(i,1);
+                        }
+                    }
+                    self.emitter.emit(DeviceEvent.DEVICES_UPDATE,self.devices);
+                }
+                break;
+                case DeviceEvent.DEVICE_CHANGED:{
+                    for(i=0;i<self.devices.length;i++){
+                        if(self.devices[i].address==msg.device.address){
+                            self.devices[i] = msg.device;
+                        }
+                    }
+                    self.emitter.emit(DeviceEvent.DEVICES_UPDATE,self.devices);
+                }
+                break;
+                case DeviceEvent.DATA_RECEIVED:{
+                    self.emitter.emit(DeviceEvent.DATA_RECEIVED,msg.data);
+                }
+                break;
+                case DeviceEvent.COMMAND_RECEIVED:{
+                    var data = msg.data;
+                    self.send(data);
+                }
+                break;
+            }
         }
-        self.send = function(buffer){
-            return new Promise(((resolve)=>{
-                chrome.bluetoothSocket.send(socketId, 0, buffer, function() {
+        self.port.onMessage.addListener(updateHandle);
+        self.discover = function(){
+          return new Promise(((resolve)=>{
+                function received(msg){
+                    self.port.onMessage.removeListener(received);
                     resolve();
-                });
+                }
+                self.port.onMessage.addListener(received);
+                self.port.postMessage({method:"discover"});
             }));
         }
+        self.list = function(){
+            return new Promise(((resolve)=>{
+                function received(msg){
+                    self.port.onMessage.removeListener(received);
+                    self.devices = msg.devices;
+                    resolve(msg.devices);
+                }
+                self.port.onMessage.addListener(received);
+                self.port.postMessage({method:"list"});
+            }));
+        };
+        self.connect = function(path){
+          return new Promise(((resolve)=>{
+              function received(msg){
+                  self.port.onMessage.removeListener(received);
+                  self.connectionId = msg.connectionId;
+                  var suc = self.connectionId>-1;
+                  resolve(suc);
+              }
+              self.port.onMessage.addListener(received);
+              self.port.postMessage({method:"connect",path:path});
+            }));
+        };
+        self.disconnect = function(){
+            return new Promise(((resolve)=>{
+              function received(msg){
+                  self.port.onMessage.removeListener(received);
+                  self.connectionId = -1;
+                  resolve();
+              }
+              self.port.onMessage.addListener(received);
+              if(self.connectionId>-1){
+                self.port.postMessage({method:"disconnect",connectionId:self.connectionId});
+              }else{
+                resolve();
+              }
+            }));
+        };
+        self.send = function(data){
+            return new Promise(((resolve)=>{
+                function received(){
+                  self.port.onMessage.removeListener(received);
+                  resolve();
+              }
+              self.port.onMessage.addListener(received);
+              self.port.postMessage({method:"send",connectionId:self.connectionId,data:data});
+            }));
+        };
         self.on = function(event,listener){
-            self.emitter.on(event,listener)
-        }  
-        chrome.bluetooth.onDeviceAdded.addListener(function(device){
-            self.emitter.emit(DeviceEvent.UPDATE_DEVICES);
-        })
-        chrome.bluetooth.onDeviceChanged.addListener(function(device){
-            self.emitter.emit(DeviceEvent.UPDATE_DEVICES);
-        })
-        chrome.bluetooth.onDeviceRemoved.addListener(function(device){
-            self.emitter.emit(DeviceEvent.UPDATE_DEVICES);
-        })
+            self.emitter.on(event,listener);
+        };
+        
+        self.list();
+        /**/
     }
     return Bluetooth;
-})
+});
 /**
  * console.log("init");
 var devicesCount = 0;
