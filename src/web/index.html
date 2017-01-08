@@ -30,13 +30,17 @@
     </select>
     <button v-on:click="connect" style="float:right;width:90px;">Connect</button>
   </div>
-  <div id="serial-device-panel">
+  <div id="serial-devices">
     <span style="width:220px;display:block;">Serial Port</span>
-    <select id="serial-device-selector" style="width:190px;"></select>
-    <button id="connectSerial" style="float:right;width:90px;">Connect</button>
+    <select v-model="selected" style="width:190px;">
+      <option v-for="option in options" v-bind:value="option.value">
+        {{ option.text }}
+      </option>
+    </select>
+    <button v-on:click="connect" style="float:right;width:90px;">Connect</button>
   </div>
   <div id="scratch-x-panel" style="margin:10px auto 0 auto;width:100%;">
-    <button id="refresh" style="float:left;height:28px;">Refresh</button>
+    <button v-on:click="refresh" style="float:left;height:28px;">Refresh</button>
     <button v-on:click="openProject" style="float:right;height:28px;color:#fff;background-color:#33cc77;">Open Scratch X</button>
   </div>
 </body>

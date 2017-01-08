@@ -18,9 +18,9 @@
     }
   },
   "bluetooth": {
-     "uuids": [ "1101"],
-    "socket": true,
-    "low_energy": true
+      "uuids": [ "1101"],
+      "socket": true,
+      "low_energy": true
   }, 
   "permissions": [ 
     "serial",

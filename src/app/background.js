@@ -5,8 +5,58 @@ chrome.app.runtime.onLaunched.addListener(function() {
         innerBounds: { width: 300, height: 440, minWidth: 300, maxWidth: 300, minHeight: 440, maxHeight: 440 }
       });
 });
-var currentPort;
+var scratchPort;
 var ports = [];
+
+//serial
+function setupSerial(port){
+    var interval;
+    port.onMessage.addListener(function(msg) {
+      if(msg.method=="list"){
+        chrome.serial.getDevices(function(devices){
+            port.postMessage({method:msg.method,devices:devices});
+        });
+      }else if(msg.method=="connect"){
+        chrome.serial.connect(msg.path,{bitrate:115200}, function(connectInfo) {
+            if (!connectInfo) {
+              port.postMessage({method:msg.method,connectionId:-1});
+            }else{
+              port.postMessage({method:msg.method,connectionId:connectInfo.connectionId});
+            }
+        });
+      }else if(msg.method=="disconnect"){
+        chrome.serial.disconnect(msg.connectionId, function() {
+            port.postMessage({method:msg.method});
+        });
+      }else if(msg.method=="send"){
+        var len = msg.data.length;
+        var bytes = new Uint8Array(len);
+        for(var i=0;i<len;i++){
+          bytes[i] = msg.data[i];
+        }
+        chrome.serial.send(msg.connectionId, bytes.buffer, function() {
+            port.postMessage({method:msg.method,data:msg.data});
+        });
+      }
+    });
+    chrome.serial.onReceive.addListener(function(obj){ 
+        var bytes = new Uint8Array(obj.data);
+        var buffer = [];
+        var len = bytes.length;
+        for(var i=0;i<len;i++){
+          buffer.push(bytes[i]);
+        }
+        if(len>0){
+          scratchPort.postMessage({buffer:buffer});
+          port.postMessage({event:"__DATA_RECEIVED__",data:buffer});
+        }
+    });
+}
+//bluetooth
+function setupBluetooth(port){
+
+}
+//hid
 function setupHID(port){
     var interval;
     port.onMessage.addListener(function(msg) {
@@ -30,9 +80,10 @@ function setupHID(port){
               buffer[i] = bytes[i]; 
             }
             port.postMessage({method:msg.method,data:buffer});
-            currentPort.postMessage(buffer);
+            scratchPort.postMessage(buffer);
         });
       }else if(msg.method=="disconnect"){
+        clearTimeout(interval);
         chrome.hid.disconnect(msg.connectionId, function() {
             port.postMessage({method:msg.method});
         });
@@ -56,7 +107,7 @@ function setupHID(port){
               buffer.push(bytes[i+1]);
             }
             if(len>0){
-              currentPort.postMessage({buffer:buffer});
+              scratchPort.postMessage({buffer:buffer});
               port.postMessage({event:"__DATA_RECEIVED__",data:buffer});
             }
             clearTimeout(interval);
@@ -77,8 +128,8 @@ function setupHID(port){
 
 chrome.runtime.onConnectExternal.addListener(function(port){
   console.log(port);
-  currentPort = port;
-  currentPort.onMessage.addListener(function(msg){
+  scratchPort = port;
+  scratchPort.onMessage.addListener(function(msg){
     for(var i in ports){
       ports[i].postMessage({event:"__COMMAND_RECEIVED__",data:msg.buffer});
     }
@@ -98,5 +149,9 @@ chrome.runtime.onConnect.addListener(function(port){
   ports.push(port);
   if(port.name=="hid"){
     setupHID(port);
+  }else if(port.name=="serial"){
+    setupSerial(port);
+  }else if(port.name=="bluetooth"){
+    setupBluetooth(port);
   }
 });

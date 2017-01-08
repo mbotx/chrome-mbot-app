@@ -12,6 +12,7 @@ define(function (require) {
   console.log("id:",chrome.runtime.id);
   const self = this;
   var hid = new HID();
+  var serial = new Serial();
   var app = new Vue({
     el: '#app',
     data: {
@@ -34,10 +35,36 @@ define(function (require) {
     },
     methods: {
         connect: function (e) {
+          if(hid.connectionId>-1){
+            hid.disconnect().then(function(){
+              e.target.innerHTML = "Connect";
+            })
+          }else{
             hid.connect(this.selected).then(function(suc){
-              console.log("hid connected:",suc);
               e.target.innerHTML = (suc?"Disconnect":"Connect");
             });
+          }
+        }
+    }
+  });
+  var serialSelector = new Vue({
+    el: '#serial-devices',
+    data: {
+      selected: '',
+      options: []
+    },
+    methods: {
+        connect: function (e) {
+          if(serial.connectionId>-1){
+            serial.disconnect().then(function(){
+              e.target.innerHTML = "Connect";
+            })
+          }else{
+            serial.connect(this.selected).then(function(suc){
+              console.log("serial connected:",suc);
+              e.target.innerHTML = (suc?"Disconnect":"Connect");
+            });
+          }
         }
     }
   });
@@ -46,12 +73,25 @@ define(function (require) {
     methods:{
       openProject:function(){
         window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/debug.sbx#scratch');
+      },
+      refresh:function(){
+        updateSerial();
+        updateHID();
       }
     }
   });
-  hid.list().then(function(devices){
-    updateHIDList(devices);
-  });
+  function updateSerial(){
+    serial.list().then(function(devices){
+      updateSerialList(devices);
+    });
+  }
+  function updateHID(){
+    hid.list().then(function(devices){
+      updateHIDList(devices);
+    });
+  }
+  updateSerial();
+  updateHID();
   hid.on(DeviceEvent.DEVICES_UPDATE,function(devices){
     updateHIDList(devices);
   });
@@ -64,6 +104,17 @@ define(function (require) {
     hidSelector._data.options = options;
     if(options.length>0){
       hidSelector._data.selected = options[0].value;
+    }
+  }
+  function updateSerialList(devices){
+    var options = [];
+    for(var i=0;i<devices.length;i++){
+      if(devices[i].path.indexOf("cu")>-1)continue;
+      options.push({ text: devices[i].path, value: devices[i].path });
+    }
+    serialSelector._data.options = options;
+    if(options.length>0){
+      serialSelector._data.selected = options[0].value;
     }
   }
 });
