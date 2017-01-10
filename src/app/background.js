@@ -2,7 +2,7 @@ chrome.app.runtime.onLaunched.addListener(function() {
   chrome.app.window.create(
       "../../src/web/index.html",
       {
-        innerBounds: { width: 300, height: 440, minWidth: 300, maxWidth: 300, minHeight: 440, maxHeight: 440 }
+        innerBounds: { width: 340, height: 460, minWidth: 340, maxWidth: 340, minHeight: 460, maxHeight: 460 }
       });
 });
 var scratchPort;
@@ -65,15 +65,21 @@ function setupBluetooth(port){
             port.postMessage({method:msg.method});
         });
       }else if(msg.method=="connect"){
-        chrome.bluetooth.connect(msg.path,{bitrate:115200}, function(connectInfo) {
-            if (!connectInfo) {
-              port.postMessage({method:msg.method,connectionId:-1});
-            }else{
-              port.postMessage({method:msg.method,connectionId:connectInfo.connectionId});
+        console.log("address:",msg.path)
+        chrome.bluetoothSocket.create(function(createInfo) {
+          var onConnectedCallback = function() {
+            if (chrome.runtime.lastError) {
+              console.log("Connection failed: " + chrome.runtime.lastError.message);
+                port.postMessage({method:msg.method,connectionId:-1});
+            } else {
+                port.postMessage({method:msg.method,connectionId:createInfo.socketId});
             }
+          };
+
+          chrome.bluetoothSocket.connect(createInfo.socketId,msg.path, '1101', onConnectedCallback);
         });
       }else if(msg.method=="disconnect"){
-        chrome.bluetooth.disconnect(msg.connectionId, function() {
+        chrome.bluetoothSocket.close(msg.connectionId, function() {
             port.postMessage({method:msg.method});
         });
       }else if(msg.method=="send"){
@@ -82,23 +88,31 @@ function setupBluetooth(port){
         for(var i=0;i<len;i++){
           bytes[i] = msg.data[i];
         }
-        chrome.bluetooth.send(msg.connectionId, bytes.buffer, function() {
+        chrome.bluetoothSocket.send(msg.connectionId, bytes.buffer, function(sent) {
+          if (chrome.runtime.lastError) {
+            console.log("Send failed: " + chrome.runtime.lastError.message);
+          } else {
             port.postMessage({method:msg.method,data:msg.data});
-        });
+          }
+        })
       }
     });
-    // chrome.bluetooth.onReceive.addListener(function(obj){ 
-    //     var bytes = new Uint8Array(obj.data);
-    //     var buffer = [];
-    //     var len = bytes.length;
-    //     for(var i=0;i<len;i++){
-    //       buffer.push(bytes[i]);
-    //     }
-    //     if(len>0){
-    //       scratchPort.postMessage({buffer:buffer});
-    //       port.postMessage({event:"__DATA_RECEIVED__",data:buffer});
-    //     }
-    // });
+    
+
+    chrome.bluetoothSocket.onReceive.addListener(function(res) {
+      // if(res.socketId==createInfo.socketId){
+        var bytes = new Uint8Array(res.data);
+        var buffer = [];
+        var len = bytes.length;
+        for(var i=0;i<len;i++){
+          buffer.push(bytes[i]);
+        }
+        if(len>0){
+          scratchPort.postMessage({buffer:buffer});
+          port.postMessage({event:"__DATA_RECEIVED__",data:buffer});
+        }
+      // }
+    });
     chrome.bluetooth.onAdapterStateChanged.addListener(function(state){
       //state.discovering;
     })

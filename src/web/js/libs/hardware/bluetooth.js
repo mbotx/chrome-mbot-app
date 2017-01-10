@@ -33,8 +33,8 @@ define(function (require) {
                 break;
                 case DeviceEvent.DEVICE_CHANGED:{
                     for(i=0;i<self.devices.length;i++){
-                        if(self.devices[i].address==msg.device.address){
-                            self.devices[i] = msg.device;
+                        if(self.devices[i].address==msg.devices[0].address){
+                            self.devices[i] = msg.devices[0];
                         }
                     }
                     self.emitter.emit(DeviceEvent.DEVICES_UPDATE,self.devices);

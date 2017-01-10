@@ -18,7 +18,8 @@ define(function (require) {
   var app = new Vue({
     el: '#app',
     data: {
-      logo:"./assets/logo.png"
+      logo:"./assets/logo.png",
+      mbot:"./assets/mbot.jpg"
     },
     methods: {
       mbotSelected: function () {
@@ -89,6 +90,9 @@ define(function (require) {
               e.target.innerHTML = (suc?"Disconnect":"Connect");
             });
           }
+        },
+        discover:function(e){
+          bluetooth.discover();
         }
     }
   });
@@ -96,7 +100,7 @@ define(function (require) {
     el:"#scratch-x-panel",
     methods:{
       openProject:function(){
-        window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/debug.sbx&id='+chrome.runtime.id+'#scratch');
+        window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/project.sbx&id='+chrome.runtime.id+'#scratch');
       },
       refresh:function(){
         updateSerial();

@@ -1,1 +1,28 @@
 /* CSS file placeholder. */
+#button-right{
+  height:40px;
+  width:90px;
+  float:right;
+}
+#button-left{
+  height:40px;
+  width:90px;
+  float:left;
+}
+#button{
+  height:40px;
+  width:90px;
+  margin-left:8px;
+}
+#button-width{
+  height:40px;
+  width:160px;
+  margin-left:8px;
+  float:right;
+}
+select{
+  height:40px;
+}
+button{
+  outline:none;
+}
