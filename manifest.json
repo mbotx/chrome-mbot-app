@@ -1,5 +1,5 @@
 {
-  "manifest_version": 3,
+  "manifest_version": 2,
   "name": "Makeblock mBot for Scratch X",
   "short_name": "Makeblock mBot",
   "description": "",
