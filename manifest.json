@@ -24,8 +24,7 @@
         "low_energy": false
     }, 
     "serial",
-    "hid", 
-      {
+    "hid":{
          "usbDevices" : [
             {
                "vendorId" : 1046,
