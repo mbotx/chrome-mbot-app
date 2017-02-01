@@ -3,7 +3,7 @@
   "name": "Makeblock mBot for Scratch X",
   "short_name": "Makeblock mBot",
   "description": "",
-  "version": "0.1.2",
+  "version": "0.1.29",
   "minimum_chrome_version": "38",
 
   "icons": {
