@@ -10,7 +10,10 @@
     "16": "./src/web/assets/icon_16.png",
     "128": "./src/web/assets/icon_128.png"
   },
-
+  "bluetooth": {
+      "uuids": [ "1101","1105","1106"],
+      "socket": true
+  }, 
   "app": {
     "background": {
       "scripts": ["src/app/background.js"],
@@ -18,20 +21,17 @@
     }
   },
   "permissions": [ 
-    "bluetooth": {
-        "uuids": [ "1101"],
-        "socket": true,
-        "low_energy": false
-    }, 
     "serial",
-    "hid":{
-         "usbDevices" : [
+    "hid".
+    "usb",
+    {
+      "usbDevices" : [
             {
                "vendorId" : 1046,
                "productId" : 65535
             }
          ]
-      },
+     },
     "http://*/*",
     "https://*/*"
   ],
