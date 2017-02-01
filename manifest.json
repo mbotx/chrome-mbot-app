@@ -11,7 +11,7 @@
     "128": "./src/web/assets/icon_128.png"
   },
   "bluetooth": {
-      "uuids": [ "1101","1105","1106"],
+      "uuids": [ "1101"],
       "socket": true
   }, 
   "app": {

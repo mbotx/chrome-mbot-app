@@ -58,12 +58,12 @@ function setupBluetooth(port){
     port.onMessage.addListener(function(msg) {
       if(msg.method=="list"){
         chrome.bluetooth.getDevices(function(devices){
-            port.postMessage({method:msg.method,devices:devices});
+            port.postMessage({method:"list",devices:devices});
         });
       }else if(msg.method=="discover"){
          chrome.bluetooth.stopDiscovery(function(){
            chrome.bluetooth.startDiscovery(function(){
-            port.postMessage({method:msg.method});
+            port.postMessage({method:"discover"});
           });
          });
       }else if(msg.method=="connect"){
@@ -74,7 +74,8 @@ function setupBluetooth(port){
               console.log("Connection failed: " + chrome.runtime.lastError.message);
                 port.postMessage({method:msg.method,connectionId:-1});
             } else {
-                port.postMessage({method:msg.method,connectionId:createInfo.socketId});
+                console.log("connection success")
+                port.postMessage({method:"connect",connectionId:createInfo.socketId});
             }
           };
 
@@ -83,7 +84,7 @@ function setupBluetooth(port){
         });
       }else if(msg.method=="disconnect"){
         chrome.bluetoothSocket.close(msg.connectionId, function() {
-            port.postMessage({method:msg.method});
+            port.postMessage({method:"disconnect"});
         });
       }else if(msg.method=="send"){
         var len = msg.data.length;
@@ -95,7 +96,7 @@ function setupBluetooth(port){
           if (chrome.runtime.lastError) {
             console.log("Send failed: " + chrome.runtime.lastError.message);
           } else {
-            port.postMessage({method:msg.method,data:msg.data});
+            port.postMessage({method:"send",data:msg.data});
           }
         })
       }

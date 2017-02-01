@@ -7,6 +7,7 @@ define(function (require) {
         self.emitter = new EventEmitter();
         self.buffer = [];
         self.devices = [];
+        self.device = null;
         self.port = chrome.runtime.connect({name: "bluetooth"});
         var i=0;
 
@@ -32,12 +33,14 @@ define(function (require) {
                 }
                 break;
                 case DeviceEvent.DEVICE_CHANGED:{
+                  if(msg.devices){
                     for(i=0;i<self.devices.length;i++){
                         if(self.devices[i].address==msg.devices[0].address){
                             self.devices[i] = msg.devices[0];
                         }
                     }
                     self.emitter.emit(DeviceEvent.DEVICES_UPDATE,self.devices);
+                  }
                 }
                 break;
                 case DeviceEvent.DATA_RECEIVED:{
@@ -77,8 +80,8 @@ define(function (require) {
           return new Promise(((resolve)=>{
               function received(msg){
                   self.port.onMessage.removeListener(received);
-                  self.connectionId = msg.connectionId;
-                  var suc = self.connectionId>-1;
+                  self.device = msg.device;
+                  var suc = self.device.connected;
                   resolve(suc);
               }
               self.port.onMessage.addListener(received);
