@@ -17,12 +17,12 @@
       "persistent": true
     }
   },
-  "bluetooth": {
-      "uuids": [ "1101"],
-      "socket": true,
-      "low_energy": false
-  }, 
   "permissions": [ 
+    "bluetooth": {
+        "uuids": [ "1101"],
+        "socket": true,
+        "low_energy": false
+    }, 
     "serial",
     "hid", 
       {
