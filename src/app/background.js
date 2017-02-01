@@ -61,9 +61,11 @@ function setupBluetooth(port){
             port.postMessage({method:msg.method,devices:devices});
         });
       }else if(msg.method=="discover"){
-        chrome.bluetooth.startDiscovery(function(){
+         chrome.bluetooth.stopDiscovery(function(){
+           chrome.bluetooth.startDiscovery(function(){
             port.postMessage({method:msg.method});
-        });
+          });
+         });
       }else if(msg.method=="connect"){
         console.log("address:",msg.path)
         chrome.bluetoothSocket.create(function(createInfo) {
