@@ -7,7 +7,10 @@ chrome.app.runtime.onLaunched.addListener(function() {
 });
 var scratchPort;
 var ports = [];
-
+var hidConnected = false;
+var serialConnected = false;
+var bluetoothConnected = false;
+var bluetoothSocketId = -1;
 //serial
 function setupSerial(port){
     var interval;
@@ -21,14 +24,19 @@ function setupSerial(port){
             if (!connectInfo) {
               port.postMessage({method:msg.method,connectionId:-1});
             }else{
+              serialConnected = true;
               port.postMessage({method:msg.method,connectionId:connectInfo.connectionId});
             }
         });
       }else if(msg.method=="disconnect"){
         chrome.serial.disconnect(msg.connectionId, function() {
             port.postMessage({method:msg.method});
+            serialConnected = false;
         });
       }else if(msg.method=="send"){
+        if(!serialConnected){
+          return;
+        }
         var len = msg.data.length;
         var bytes = new Uint8Array(len);
         for(var i=0;i<len;i++){
@@ -74,25 +82,31 @@ function setupBluetooth(port){
               console.log("Connection failed: " + chrome.runtime.lastError.message);
                 port.postMessage({method:msg.method,connectionId:-1});
             } else {
-                console.log("connection success")
+                console.log("connection success:",createInfo)
+                bluetoothConnected = true;
                 port.postMessage({method:"connect",connectionId:createInfo.socketId});
             }
           };
 
           console.log("createInfo.socketId:",createInfo.socketId)
+          bluetoothSocketId = createInfo.socketId;
           chrome.bluetoothSocket.connect(createInfo.socketId,msg.path, '1101', onConnectedCallback);
         });
       }else if(msg.method=="disconnect"){
         chrome.bluetoothSocket.close(msg.connectionId, function() {
             port.postMessage({method:"disconnect"});
+            bluetoothConnected = false;
         });
       }else if(msg.method=="send"){
+        if(!bluetoothConnected){
+          return;
+        }
         var len = msg.data.length;
         var bytes = new Uint8Array(len);
         for(var i=0;i<len;i++){
           bytes[i] = msg.data[i];
         }
-        chrome.bluetoothSocket.send(msg.connectionId, bytes.buffer, function(sent) {
+        chrome.bluetoothSocket.send(bluetoothSocketId, bytes.buffer, function(sent) {
           if (chrome.runtime.lastError) {
             console.log("Send failed: " + chrome.runtime.lastError.message);
           } else {
@@ -145,6 +159,7 @@ function setupHID(port){
               port.postMessage({method:msg.method,connectionId:-1});
             }else{
               port.postMessage({method:msg.method,connectionId:connectInfo.connectionId});
+              hidConnected = true;
             }
         });
       }else if(msg.method=="receive"){
@@ -161,8 +176,12 @@ function setupHID(port){
         clearTimeout(interval);
         chrome.hid.disconnect(msg.connectionId, function() {
             port.postMessage({method:msg.method});
+            hidConnected = false;
         });
       }else if(msg.method=="send"){
+        if(!hidConnected){
+          return;
+        }
         var len = msg.data.length;
         var bytes = new Uint8Array(len+1);
         bytes[0] = len;

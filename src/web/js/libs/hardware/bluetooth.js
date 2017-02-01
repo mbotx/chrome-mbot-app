@@ -80,8 +80,13 @@ define(function (require) {
           return new Promise(((resolve)=>{
               function received(msg){
                   self.port.onMessage.removeListener(received);
-                  self.device = msg.device;
-                  var suc = self.device.connected;
+                  var suc = false;
+                  if(msg.connectionId){
+                    suc = msg.connectionId>-1;
+                  }else if(msg.device){
+                    self.device = msg.device;
+                    suc = self.device.connected;
+                  }
                   resolve(suc);
               }
               self.port.onMessage.addListener(received);
