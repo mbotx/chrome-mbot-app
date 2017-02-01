@@ -19,7 +19,7 @@ define(function (require) {
     el: '#app',
     data: {
       logo:"./assets/logo.png",
-      mbot:"./assets/mbot.jpg"
+      mbot:"./assets/mBot.jpg"
     },
     methods: {
       mbotSelected: function () {
