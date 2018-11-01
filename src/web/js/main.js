@@ -100,7 +100,7 @@ define(function(require) {
             el: "#scratch-x-panel",
             methods: {
                 openProject: function() {
-                    window.open('http://scratchx.org/?url=http://gabrielcbe.github.io/scratchx-mbot/makeblock-app.js#scratch');
+                    window.open('http://scratchx.org/?url=http://gabrielcbe.github.io/scratchx-mbot/project.sbx&id='+chrome.runtime.id+'#scratch');
                 },
                 refresh: function() {
                     updateSerial();
