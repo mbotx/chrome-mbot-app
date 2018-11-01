@@ -1,11 +1,11 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Makeblock-mBot</title>
+  <title>MindMakers-mBot</title>
   <link rel="stylesheet" href="style/style.css">
   <link rel="stylesheet" href="style/buttons.css">
   <script data-main="./js/config" src="./js/libs/require.js"></script>
-    
+
 </head>
 <body>
   <div id="app">
@@ -25,8 +25,8 @@
     <button id="button-right" class="button button-primary button-box" v-on:click="connect">Connect</button>
   </div>-->
   <div id="hid-devices" style="margin:20px 0px;height:40px">
-    <span style="width:220px;display:block;">HID Wireless</span>
-    <select v-model="selected" style="width:220px;">
+    <span style="width:200px;display:block;">HID Wireless</span>
+    <select v-model="selected" style="width:200px;">
       <option v-for="option in options" v-bind:value="option.value">
         {{ option.text }}
       </option>
@@ -34,8 +34,8 @@
     <button id="button-right" class="button button-primary button-box" v-on:click="connect">Conectar</button>
   </div>
   <div id="serial-devices">
-    <span style="width:220px;display:block;">Porta Serial</span>
-    <select v-model="selected" style="width:220px;">
+    <span style="width:200px;display:block;">Porta Serial</span>
+    <select v-model="selected" style="width:200px;">
       <option v-for="option in options" v-bind:value="option.value">
         {{ option.text }}
       </option>
