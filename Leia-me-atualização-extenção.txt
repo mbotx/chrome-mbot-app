@@ -1,0 +1,24 @@
+Em novas versões, é necessário fazer um update do APP ID. 
+
+Atual: fccjamniakfggblhlnhdhiilkgdcijpj
+
+No Github
+
+Em  -> https://gabrielcbe.github.io/scratchx-mbot/makeblock-app.js
+
+linha: var makeblockAppID = getRequest().id?getRequest().id:"fccjamniakfggblhlnhdhiilkgdcijpj"; //unique app ID for Scratch connection App
+
+e https://gabrielcbe.github.io/scratchx-mbot/projects.sbx
+
+
+No APP
+
+EM -> Extensions>mbot>mbot.js
+
+var makeblockAppID = getRequest().id?getRequest().id:"fccjamniakfggblhlnhdhiilkgdcijpj"; //unique app ID for Hummingbird Scratch App
+
+src>web>js>main.js
+openProject:function(){
+        window.open('http://scratchx.org/?url=http://mbotx.github.io/scratchx-mbot/project.sbx&id='+chrome.runtime.id+'#scratch');
+      },
+

@@ -1,19 +1,15 @@
 {
   "manifest_version": 2,
-  "name": "Makeblock mBot for Scratch X",
-  "short_name": "Makeblock mBot",
+  "name": "MindMakers conexão mBot para ScratchX",
+  "short_name": "MindMakers-mBot",
   "description": "",
-  "version": "0.1.29",
+  "version": "0.1.0",
   "minimum_chrome_version": "38",
 
   "icons": {
     "16": "./src/web/assets/icon_16.png",
     "128": "./src/web/assets/icon_128.png"
   },
-  "bluetooth": {
-      "uuids": [ "1101"],
-      "socket": true
-  }, 
   "app": {
     "background": {
       "scripts": ["src/app/background.js"],
