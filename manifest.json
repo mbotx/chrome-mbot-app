@@ -41,6 +41,6 @@
     ]
   },
   "externally_connectable": {
-    "matches": ["*://localhost/*","*://scratchx.org/*"]
+    "matches": ["*://localhost/*","*://scratchx.org/*","*://machinelearningforkids.co.uk/*"]
   }
 }
