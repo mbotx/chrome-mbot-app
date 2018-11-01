@@ -1,7 +1,7 @@
 requirejs.config({
-    baseUrl: 'libs',
-    paths: {
-        js: '../js'
-    }
-});
+        baseUrl: 'libs',
+        paths: {
+            js: '../js'
+        }
+    });
 requirejs(['js/main']);
