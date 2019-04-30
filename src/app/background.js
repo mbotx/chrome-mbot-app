@@ -1,8 +1,8 @@
 chrome.app.runtime.onLaunched.addListener(function() {
   chrome.app.window.create(
-      "../../src/web/index.html",
+      "../../src/web/webview.html",
       {
-        innerBounds: { width: 340, height: 460, minWidth: 340, maxWidth: 340, minHeight: 460, maxHeight: 460 }
+        innerBounds: { width: 360, height: 460, minWidth: 340, maxWidth: 360, minHeight: 460, maxHeight: 460 }
       });
 });
 var scratchPort;
